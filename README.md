@@ -10,7 +10,7 @@ Additionally, when hovering over the server's tag, it will show the list of mods
 The color of the mod names mean different things, they go as follows:
 - Blue: Both you and the host have the same mod, everything should work as intended.
 - Green: The host has the mod but you do not, and the mod isn't required, so everything should still work as intended.
-- Yellow: The host has the mod but you do not, but the mod is required. You can still join the lobby as normal, but you may run into some issues while playing without that mod.
+- Yellow: The host has the mod but you do not, and the mod is required. You can still join the lobby as normal, but you may run into some issues while playing without that mod.
 - Red: You have the mod but the host does not. Everything should still work as intended, though that depends on the mod.
 - Blue Name but Yellow Version: Both you and the host have the same mod, but don't have the same version of the mod (the version shown will be the hosts version), some issues may occur, though that depends on the mod.
 
