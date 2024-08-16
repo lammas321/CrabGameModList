@@ -20,4 +20,4 @@ If a server isn't using ModList, the Mod List text at the top will appear red an
 ## Wait, so everyone will be able to see what mods I have if I'm hosting?
 No, in order for a mod to be added to your mod list, it must be added to the config, located at Crab Game/BepInEx/config/lammas123.ModList.SharedMods.txt, there are instructions there on how to add a mod to your mod list.
 
-Only mods included in the shared mods list will be shared to other clients using ModList, though certain mods that are integrated with ModList (like [FloatingPlayerPatch](https://github.com/lammas321/CrabGameFloatingPlayerPatch)) will be added anyways.
+Only mods included in the shared mods list will be shared to other clients using ModList, though certain mods that are integrated with ModList (like [FloatingPlayerPatch](https://github.com/lammas321/CrabGameFloatingPlayerPatch)) will be added automatically.
