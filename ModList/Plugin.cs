@@ -5,9 +5,9 @@ using SteamworksNative;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Schema;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace ModList
@@ -30,10 +30,10 @@ namespace ModList
                     string line = str.Trim();
                     if (line.Length == 0 || line.StartsWith("#")) continue;
                     string[] split = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                    if (split.Length == 0 || sharedMods.ContainsKey(split[0])) continue;
+                    if (split.Length == 0 || sharedMods.ContainsKey(split[0].Trim())) continue;
 
                     if (split.Length == 1)
-                        sharedMods.Add(split[0], false);
+                        sharedMods.Add(split[0].Trim(), false);
                     else
                         sharedMods.Add(split[0].Trim(), split[1].Trim() == "1");
                 }
@@ -56,19 +56,11 @@ namespace ModList
             Log.LogInfo($"Loaded [{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION}]");
         }
 
-        public static bool AddMod(string guid, bool required = false)
-        {
-            if (Instance.sharedMods.ContainsKey(guid) || !IL2CPPChainloader.Instance.Plugins.ContainsKey(guid))
-                return false;
-
-            Instance.sharedMods.Add(guid, required);
-            return true;
-        }
-
 
         internal void OnStartLobby()
         {
             SteamMatchmaking.SetLobbyData(LobbyManager.Instance.field_Private_CSteamID_0, "Modded", "1");
+            SteamMatchmaking.SetLobbyData(LobbyManager.Instance.field_Private_CSteamID_0, "ModListVersion", MyPluginInfo.PLUGIN_VERSION);
             foreach (string guid in sharedMods.Keys)
                 if (IL2CPPChainloader.Instance.Plugins.ContainsKey(guid))
                     SteamMatchmaking.SetLobbyData(LobbyManager.Instance.field_Private_CSteamID_0, $"Mod:{guid}:{IL2CPPChainloader.Instance.Plugins[guid].Metadata.Name}:{IL2CPPChainloader.Instance.Plugins[guid].Metadata.Version}:{(sharedMods[guid] ? "1" : "0")}", "1");
@@ -94,7 +86,7 @@ namespace ModList
 
             Transform modListText = modList.GetChild(0); // Previously 'GameModeText'
             modListText.name = "Mod List Text";
-            modListText.GetComponent<TextMeshProUGUI>().text = "Mod List";
+            modListText.GetComponent<TextMeshProUGUI>().text = $"Mod List<size=75%> v{MyPluginInfo.PLUGIN_VERSION}";
 
             Transform modListContainer = modList.GetChild(1); // Previously 'GameModeContainer'
             modListContainer.name = "Mod List Container";
@@ -121,9 +113,14 @@ namespace ModList
             // Set header
             Transform modList = MenuUiServerListingGameModesAndMapsInfo.Instance.transform.GetChild(1);
             modList.gameObject.SetActive(true);
+            string hostVersion = SteamMatchmaking.GetLobbyData(lobbyId, "ModListVersion");
+            if (string.IsNullOrWhiteSpace(hostVersion))
+                hostVersion = "1.0.0";
             modList.GetChild(0).GetComponent<TextMeshProUGUI>().text = SteamMatchmaking.GetLobbyData(lobbyId, "Modded") == "1"
-                ? "Mod List"
-                : $"<color={MenuUiServerListingGameModesAndMapsInfo.Instance.redCol}>Mod List";
+                ? (hostVersion == MyPluginInfo.PLUGIN_VERSION
+                    ? $"Mod List<size=75%> v{MyPluginInfo.PLUGIN_VERSION}"
+                    : $"Mod List<color=#{ColorUtility.ToHtmlStringRGB(Color.yellow)}><size=75%> v{hostVersion}")
+                : $"<color={MenuUiServerListingGameModesAndMapsInfo.Instance.redCol}>Mod List<size=75%> v{MyPluginInfo.PLUGIN_VERSION}";
 
             // Get mods the host has (that are compatible with ModList)
             int count = SteamMatchmaking.GetLobbyDataCount(lobbyId);
@@ -137,7 +134,7 @@ namespace ModList
                 try
                 {
                     string[] modData = key.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    if (modData.Length < 4 || modData[1] == $"lammas123.{MyPluginInfo.PLUGIN_NAME}") continue;
+                    if (modData.Length < 5 || modData[0] != "Mod" || modData[1] == $"lammas123.{MyPluginInfo.PLUGIN_NAME}" || foundMods.ContainsKey(modData[1])) continue;
 
                     CrabGameMod mod = new(modData[1], modData[3]);
                     if (IL2CPPChainloader.Instance.Plugins.ContainsKey(mod.guid))
@@ -173,6 +170,34 @@ namespace ModList
 
         internal void HideModList()
             => MenuUiServerListingGameModesAndMapsInfo.Instance.transform.GetChild(1).gameObject.SetActive(false);
+
+        internal void PreventMainMenuSoftlock(GameUiBackButton back)
+        {
+            if (back.backBtn.onClick.m_PersistentCalls.m_Calls.Count != 2) return;
+
+            PersistentCall baseCall = back.backBtn.onClick.m_PersistentCalls.m_Calls[0];
+            PersistentCall call1 = new()
+            {
+                m_Arguments = baseCall.m_Arguments,
+                m_CallState = baseCall.m_CallState,
+                m_MethodName = baseCall.m_MethodName,
+                m_Mode = baseCall.m_Mode,
+                m_Target = MenuUiServerListingGameModesAndMapsInfo.Instance.parent,
+                m_TargetAssemblyTypeName = baseCall.m_TargetAssemblyTypeName
+            };
+            back.backBtn.onClick.m_PersistentCalls.m_Calls.Add(call1);
+
+            PersistentCall call2 = new()
+            {
+                m_Arguments = baseCall.m_Arguments,
+                m_CallState = baseCall.m_CallState,
+                m_MethodName = baseCall.m_MethodName,
+                m_Mode = baseCall.m_Mode,
+                m_Target = MenuUiServerListingGameModesAndMapsInfo.Instance.transform.GetChild(1).gameObject,
+                m_TargetAssemblyTypeName = baseCall.m_TargetAssemblyTypeName
+            };
+            back.backBtn.onClick.m_PersistentCalls.m_Calls.Add(call2);
+        }
 
 
         internal enum CrabGameModState

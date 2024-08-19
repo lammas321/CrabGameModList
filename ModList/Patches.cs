@@ -46,5 +46,10 @@ namespace ModList
         [HarmonyPostfix]
         internal static void PostMenuUiServerListingGameModesAndMapsOnPointerExit()
             => Instance.HideModList();
+        
+        [HarmonyPatch(typeof(MenuUiServerList), nameof(MenuUiServerList.OnEnable))]
+        [HarmonyPostfix]
+        internal static void PostMenuUiServerListOnEnable(MenuUiServerList __instance)
+            => Instance.PreventMainMenuSoftlock(__instance.GetComponent<GameUiBackButton>());
     }
 }
