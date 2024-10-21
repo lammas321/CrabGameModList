@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SteamworksNative;
 using static ModList.ModList;
 
 namespace ModList
@@ -10,7 +11,7 @@ namespace ModList
         [HarmonyPatch(typeof(LobbyManager), nameof(LobbyManager.Method_Private_Void_0))] // Ensures connectedToSteam stays false (true means modding has been detected)
         //[HarmonyPatch(typeof(SnowSpeedModdingDetector), nameof(SnowSpeedModdingDetector.Method_Private_Void_0))] // Would ensure snowSpeed is never set to Vector3.zero (though it is immediately set back to Vector3.one due to an accident on Dani's part lol)
         [HarmonyPrefix]
-        public static bool PreBepinexDetection()
+        internal static bool PreBepinexDetection()
             => false;
 
 
@@ -21,6 +22,11 @@ namespace ModList
         [HarmonyPostfix]
         internal static void PostLobbyManagerStartLobby()
             => Instance.OnStartLobby();
+
+        [HarmonyPatch(typeof(SteamManager), nameof(SteamManager.Awake))]
+        [HarmonyPostfix]
+        internal static void PostSteamManagerAwake(SteamManager __instance)
+            => Instance.LogMods(__instance);
 
         [HarmonyPatch(typeof(MenuUiServerListingGameModesAndMapsInfo), nameof(MenuUiServerListingGameModesAndMapsInfo.Awake))]
         [HarmonyPostfix]
@@ -46,10 +52,22 @@ namespace ModList
         [HarmonyPostfix]
         internal static void PostMenuUiServerListingGameModesAndMapsOnPointerExit()
             => Instance.HideModList();
-        
+
         [HarmonyPatch(typeof(MenuUiServerList), nameof(MenuUiServerList.OnEnable))]
         [HarmonyPostfix]
         internal static void PostMenuUiServerListOnEnable(MenuUiServerList __instance)
             => Instance.PreventMainMenuSoftlock(__instance.GetComponent<GameUiBackButton>());
+
+        [HarmonyPatch(typeof(SteamManager), nameof(SteamManager.JoinLobby))]
+        [HarmonyPostfix]
+        internal static void PostSteamManagerJoinLobby(CSteamID param_1)
+            => Instance.JoiningLobby(param_1);
+
+
+        // Makes Crab Game not hide lobbies that have less than 2 free player slots in them in the server list
+        [HarmonyPatch(typeof(SteamMatchmaking), nameof(SteamMatchmaking.AddRequestLobbyListFilterSlotsAvailable))]
+        [HarmonyPrefix]
+        internal static bool PreSteamMatchmakingAddRequestLobbyListFilterSlotsAvailable()
+            => false;
     }
 }
