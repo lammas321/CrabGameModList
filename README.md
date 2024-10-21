@@ -21,3 +21,9 @@ If a server isn't using ModList, the Mod List text at the top will appear red an
 No, in order for a mod to be added to your mod list, it must be added to the config, located at Crab Game/BepInEx/config/lammas123.ModList.SharedMods.txt, there are instructions there on how to add a mod to your mod list.
 
 Only mods included in the shared mods list will be shared to other clients using ModList, though certain mods that are integrated with ModList (like [FloatingPlayerPatch](https://github.com/lammas321/CrabGameFloatingPlayerPatch)) will be added automatically.
+
+# New as of v1.1.0 (besides some fixes I forgot about)
+ModList will now keep Crab Game from hiding lobbies with 2 or less open spaces from the server list.
+Crab Game would normally (for example) hide lobbies at 13 or 14 players out of 15 max players from the server list.
+This would also hide lobbies with small max player counts (and completely hide lobbies with a max player count of 2 or 3), making it difficult for them to reach their max player count.
+Though this is kind of a niche change, I think it's better to leave lobbies close to their maximum player count visible.
