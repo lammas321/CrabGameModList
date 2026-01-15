@@ -13,11 +13,11 @@ using UnityEngine.UI;
 
 namespace ModList
 {
-    [BepInPlugin($"lammas123.{MyPluginInfo.PLUGIN_NAME}", MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     public class ModList : BasePlugin
     {
         internal static ModList Instance;
-        internal MenuUiServerListingGameModesAndMapsInfo ServerListingInstance;
+        internal Deobf_MenuUiServerListingGameModesAndMapsInfo ServerListingInstance;
         internal Dictionary<string, bool> sharedMods = [];
 
         public override void Load()
@@ -60,7 +60,7 @@ namespace ModList
                 ]);
 
             Harmony.CreateAndPatchAll(typeof(Patches));
-            Log.LogInfo($"Loaded [{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION}]");
+            Log.LogInfo($"Initialized [{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION}]");
         }
 
         
@@ -99,7 +99,7 @@ namespace ModList
 
         internal void CreateModListGameObject()
         {
-            ServerListingInstance = MenuUiServerListingGameModesAndMapsInfo.Instance;
+            ServerListingInstance = Deobf_MenuUiServerListingGameModesAndMapsInfo.Instance;
             if (ServerListingInstance.transform.childCount != 1)
                 return; // The mod list game object has aleady been created
 
@@ -120,7 +120,7 @@ namespace ModList
             modListContainer.GetComponent<GridLayoutGroup>().cellSize = new(390, 18);
         }
 
-        internal void CheckModded(MenuUiServerListing listing)
+        internal void CheckModded(SerevrUIPrefab listing)
         {
             if (SteamMatchmaking.GetLobbyData(listing.field_Private_CSteamID_0, "Modded") != "1")
                 return;
@@ -163,7 +163,7 @@ namespace ModList
                 try
                 {
                     string[] modData = key.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    if (modData.Length < 5 || modData[0] != "Mod" || modData[1] == $"lammas123.{MyPluginInfo.PLUGIN_NAME}" || foundMods.ContainsKey(modData[1]))
+                    if (modData.Length < 5 || modData[0] != "Mod" || modData[1] == MyPluginInfo.PLUGIN_GUID || foundMods.ContainsKey(modData[1]))
                         continue;
 
                     CrabGameMod mod = new(modData[1], modData[3]);
@@ -190,7 +190,7 @@ namespace ModList
 
             // Add all mods on client that are not already added
             foreach (string guid in sharedMods.Keys)
-                if (guid != $"lammas123.{MyPluginInfo.PLUGIN_NAME}" && !foundMods.ContainsKey(guid) && IL2CPPChainloader.Instance.Plugins.ContainsKey(guid))
+                if (guid != MyPluginInfo.PLUGIN_GUID && !foundMods.ContainsKey(guid) && IL2CPPChainloader.Instance.Plugins.ContainsKey(guid))
                     foundMods.Add(guid, new(guid, IL2CPPChainloader.Instance.Plugins[guid].Metadata.Version.ToString()));
 
             Transform modListContainer = modList.GetChild(1);
@@ -201,7 +201,7 @@ namespace ModList
         internal void HideModList()
             => ServerListingInstance.transform.GetChild(1).gameObject.SetActive(false);
 
-        internal void PreventMainMenuSoftlock(GameUiBackButton back)
+        internal void PreventMainMenuSoftlock(EscapeUI back)
         {
             if (back.backBtn.onClick.m_PersistentCalls.m_Calls.Count != 2)
                 return;
@@ -253,7 +253,7 @@ namespace ModList
                 try
                 {
                     string[] modData = key.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    if (modData.Length < 5 || modData[0] != "Mod" || modData[1] == $"lammas123.{MyPluginInfo.PLUGIN_NAME}" || foundMods.ContainsKey(modData[1]))
+                    if (modData.Length < 5 || modData[0] != "Mod" || modData[1] == MyPluginInfo.PLUGIN_GUID || foundMods.ContainsKey(modData[1]))
                         continue;
 
                     CrabGameMod mod = new(modData[1], modData[3]);

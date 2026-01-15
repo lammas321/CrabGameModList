@@ -9,7 +9,7 @@ namespace ModList
         //   Anti Bepinex detection (Thanks o7Moon: https://github.com/o7Moon/CrabGame.AntiAntiBepinex)
         [HarmonyPatch(typeof(EffectManager), nameof(EffectManager.Method_Private_Void_GameObject_Boolean_Vector3_Quaternion_0))] // Ensures effectSeed is never set to 4200069 (if it is, modding has been detected)
         [HarmonyPatch(typeof(LobbyManager), nameof(LobbyManager.Method_Private_Void_0))] // Ensures connectedToSteam stays false (true means modding has been detected)
-        //[HarmonyPatch(typeof(SnowSpeedModdingDetector), nameof(SnowSpeedModdingDetector.Method_Private_Void_0))] // Would ensure snowSpeed is never set to Vector3.zero (though it is immediately set back to Vector3.one due to an accident on Dani's part lol)
+        //[HarmonyPatch(typeof(Deobf_MenuSnowSpeedModdingDetector), nameof(Deobf_MenuSnowSpeedModdingDetector.Method_Private_Void_0))] // Would ensure snowSpeed is never set to Vector3.zero (though it is immediately set back to Vector3.one due to an accident on Dani's part lol)
         [HarmonyPrefix]
         internal static bool PreBepinexDetection()
             => false;
@@ -28,35 +28,35 @@ namespace ModList
         internal static void PostSteamManagerAwake(SteamManager __instance)
             => Instance.LogMods(__instance);
 
-        [HarmonyPatch(typeof(MenuUiServerListingGameModesAndMapsInfo), nameof(MenuUiServerListingGameModesAndMapsInfo.Awake))]
+        [HarmonyPatch(typeof(Deobf_MenuUiServerListingGameModesAndMapsInfo), nameof(Deobf_MenuUiServerListingGameModesAndMapsInfo.Awake))]
         [HarmonyPostfix]
-        internal static void PostMenuUiServerListingGameModesAndMapsInfoAwake()
+        internal static void PostDeobf_MenuUiServerListingGameModesAndMapsInfoAwake()
             => Instance.CreateModListGameObject();
 
-        [HarmonyPatch(typeof(MenuUiServerListing), nameof(MenuUiServerListing.Method_Private_Void_1))]
+        [HarmonyPatch(typeof(SerevrUIPrefab), nameof(SerevrUIPrefab.Method_Private_Void_1))]
         [HarmonyPostfix]
-        internal static void PostMenuUiServerListingCheckModified(MenuUiServerListing __instance)
+        internal static void PostSerevrUIPrefabCheckModified(SerevrUIPrefab __instance)
             => Instance.CheckModded(__instance);
 
-        [HarmonyPatch(typeof(MenuUiServerListingGameModesAndMaps), nameof(MenuUiServerListingGameModesAndMaps.OnPointerEnter))]
+        [HarmonyPatch(typeof(Deobf_MenuUiServerListingGameModesAndMapsHover), nameof(Deobf_MenuUiServerListingGameModesAndMapsHover.OnPointerEnter))]
         [HarmonyPrefix]
-        internal static void PreMenuUiServerListingGameModesAndMapsOnPointerEnter()
+        internal static void PreDeobf_MenuUiServerListingGameModesAndMapsHoverOnPointerEnter()
             => Instance.ClearModList();
-
-        [HarmonyPatch(typeof(MenuUiServerListingGameModesAndMaps), nameof(MenuUiServerListingGameModesAndMaps.OnPointerEnter))]
+        
+        [HarmonyPatch(typeof(Deobf_MenuUiServerListingGameModesAndMapsHover), nameof(Deobf_MenuUiServerListingGameModesAndMapsHover.OnPointerEnter))]
         [HarmonyPostfix]
-        internal static void PostMenuUiServerListingGameModesAndMapsOnPointerEnter(MenuUiServerListingGameModesAndMaps __instance)
+        internal static void PostMenuUiServerListingGameModesAndMapsOnPointerEnter(Deobf_MenuUiServerListingGameModesAndMapsHover __instance)
             => Instance.FillModList(__instance.serverUi.field_Private_CSteamID_0);
 
-        [HarmonyPatch(typeof(MenuUiServerListingGameModesAndMaps), nameof(MenuUiServerListingGameModesAndMaps.OnPointerExit))]
+        [HarmonyPatch(typeof(Deobf_MenuUiServerListingGameModesAndMapsHover), nameof(Deobf_MenuUiServerListingGameModesAndMapsHover.OnPointerExit))]
         [HarmonyPostfix]
         internal static void PostMenuUiServerListingGameModesAndMapsOnPointerExit()
             => Instance.HideModList();
 
-        [HarmonyPatch(typeof(MenuUiServerList), nameof(MenuUiServerList.OnEnable))]
+        [HarmonyPatch(typeof(ServerList), nameof(ServerList.OnEnable))]
         [HarmonyPostfix]
-        internal static void PostMenuUiServerListOnEnable(MenuUiServerList __instance)
-            => Instance.PreventMainMenuSoftlock(__instance.GetComponent<GameUiBackButton>());
+        internal static void PostMenuUiServerListOnEnable(ServerList __instance)
+            => Instance.PreventMainMenuSoftlock(__instance.GetComponent<EscapeUI>());
 
         [HarmonyPatch(typeof(SteamManager), nameof(SteamManager.JoinLobby))]
         [HarmonyPostfix]
